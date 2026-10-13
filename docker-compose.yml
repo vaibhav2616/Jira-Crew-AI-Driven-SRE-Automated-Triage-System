@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  # 1. AI-Driven SRE Automated Triage Microservice
+  sre-triage-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sre-automated-triage
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-mock-gemini-api-key}
+      - JIRA_DOMAIN=${JIRA_DOMAIN:-your-name.atlassian.net}
+      - JIRA_EMAIL=${JIRA_EMAIL:-sre@example.com}
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN:-mock-jira-api-token}
+      - JIRA_PROJECT_KEY=${JIRA_PROJECT_KEY:-KAN}
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # 2. Redis Cache for Alert Storm Suppression & Deduplication (Free & Local)
+  redis:
+    image: redis:alpine
+    container_name: sre-triage-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
